@@ -4,7 +4,7 @@ file_name = "index.md"
     
 file = open(file_name, 'w', encoding='utf-8')
 
-base = os.path.join("_posts", "八股文")
+base = os.path.join("_posts")
 
 def recur(rootDir):
     for lists in os.listdir(rootDir): 
@@ -13,7 +13,7 @@ def recur(rootDir):
             # - [C++](_posts/2020-9-24-cpp.md)
             file.write("- [{}]({})".format(path.split('\\')[-1][0:-3], '/'.join(path.split('\\'))))
             file.write('\n')
-        else:
+        elif path.split('\\')[-1] != "image":
             file.write("### {}".format(path.split('\\')[-1]))
             file.write('\n')
         print(path)
