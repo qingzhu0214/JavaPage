@@ -18,6 +18,6 @@
 14. [go](_posts/2021-9-21-go.md)
 15. [k8s](_posts/2021-11-1-k8s.md)
 
-联系方式 csjue_sz@foxmail.com
+联系方式 wuzu@foxmail.com
 
-知乎 GitHub：csjue
+知乎 wuzu
