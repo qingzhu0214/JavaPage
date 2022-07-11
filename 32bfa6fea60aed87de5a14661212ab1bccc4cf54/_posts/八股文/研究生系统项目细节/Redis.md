@@ -1,0 +1,5 @@
+RedisService文件包装了一下RedisTemplate
+
+SessionStateStore类
+
+选课的时候用到了redis
