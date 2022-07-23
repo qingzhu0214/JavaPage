@@ -5,5 +5,4 @@
 - [Redis](_posts/2020-9-25-Redis.md)
 - [SpringBoot](_posts/2020-9-25-SpringBoot.md)
 - [操作系统](_posts/2020-9-25-操作系统.md)
-- [知识点打印](_posts/2020-9-25-知识点打印.md)
 - [计算机网络](_posts/2020-9-25-计算机网络.md)
