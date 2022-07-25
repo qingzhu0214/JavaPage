@@ -97,7 +97,7 @@ springboot是依赖于spring的，比起spring，除了拥有spring的全部功�
 4. 到这一步，DispatcherServlet就会调用ViewResolver（视图解析器）来解析ModelAndView 对象，得到一个View（视图），这个视图就是已经渲染好了的jsp页面了，然后把页面返回给前端之前在执行一次拦截器；
 ***
 [参考](https://www.ldj.asia/articles/2021/11/17/1637154230873.html)
-![](./image/mvc.png)
+![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/image/mvc.png)
 1. DispatcherServlet 表示前置控制器，是整个 SpringMVC 的控制中心。用户发出请求，DispatcherServlet 接收请求并拦截请求
 2. HandlerMapping 为处理器映射。DispatcherServlet 调用 HandlerMapping, HandlerMapping 根据请求 url 查找 Handler
 3. HandlerExecution 表示具体的 Handler,其主要作用是根据 url 查找控制器
@@ -135,7 +135,7 @@ springboot是依赖于spring的，比起spring，除了拥有spring的全部功�
 - earlySingletonObjects：二级缓存，存放提前暴露的 bean，bean 是不完整的，未完成属性注入和执行 init 方法，用于解决循环依赖；
 - singletonFactories：三级缓存，对初始化后的 bean 完成 AOP 代理操作，bean 初始化完成之后才生成代理，而不是实例化之后就生成代理，保证了bean的生命周期。
 
-![](./image/三级缓存.png)
+![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/image/三级缓存.png)
 
 ***
 我们的Spring是通过三级缓存来解决的。
@@ -244,7 +244,7 @@ public class DefaultAutowireService {
 [IOC怎么实现](https://zhangxike.top/archives/%E8%B0%88%E8%B0%88springioc%E7%9A%84%E7%90%86%E8%A7%A3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E7%8E%B0)
 Spring IoC 的底层实现是基于反射技术。
 
-![](./image/IOC原理.png)
+![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/image/IOC原理.png)
 
 ### IOC原理🐨🐋🌟🌟
 [参考](https://yexindong.blog.csdn.net/article/details/117173285?spm=1001.2014.3001.5502)
@@ -282,7 +282,7 @@ IOC的启动流程分为以下两个重要的阶段：
 **Bean的实例化阶段**
 在ApplicationContext中，所有的BeanDefinition的Scope默认是Singleton，针对Singleton我们Spring容器采用是预先实例化的策略。这样我们在获取实例的时候就会直接从缓存里面拉取出来，提升了运行效率。
 
-![](./image/bean实例化.png)
+![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/image/bean实例化.png)
 Bean实例化中会调用的方法
 - Bean自身的方法：配置文件中的init-method和destroy-method配置的方法、Bean对象自己调用的方法
 - Bean级生命周期接口方法：BeanNameAware、BeanFactoryAware、InitializingBean、DiposableBean等接口中的方法
@@ -534,6 +534,16 @@ AspectJ可以做Spring AOP干不了的事情，它是AOP编程的完全解决方
 - 模版方法模式：Spring 中 jdbcTemplate、hibernateTemplate 等以 Template 结尾的对数据库操作的类，它们就使用到了模板模式。
 
 ### SpringBoot的自动装配原理🐨🌟
+启动类的 **@SpringBootApplication** 
+-> **@EnableAutoConfiguration** 
+-> **@Import(AutoConfigurationImportSelector.class)** 
+-> selectImports方法里调用getAutoConfigurationEntry 
+-> **getCandidateConfigurations方法调用SpringFactoriesLoader.loadFactoryNames** 
+-> loadSpringFactories
+-> classLoader.getResources(FACTORIES_RESOURCE_LOCATION);
+-> FACTORIES_RESOURCE_LOCATION = **"META-INF/spring.factories"**; 【加载key为EnableAutoConfiguration的类】
+-> 调用filter.match过滤掉一些类
+
 [参考](https://segmentfault.com/a/1190000030685746)
 **Bean自动配置**
 Spring Boot的启动类上有一个@SpringBootApplication注解，它上面定义了另外一个注解：@EnableAutoConfiguration。
@@ -585,7 +595,7 @@ EnableAutoConfiguration会帮助springboot应用把所有符合@Configuration配
 
 [@Autowired实现原理](https://www.jianshu.com/p/1002f5a704ea)
 
-![](./image/bean初始化.jpg)
+![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/image/bean初始化.jpg)
 
 **Autowired使用**
 ```java

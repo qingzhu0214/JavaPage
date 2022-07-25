@@ -37,7 +37,7 @@ for root,dirs,files in os.walk(base):
         mdfile.write('\n')
         print(files)
     for name in files:
-        if name.endswith("基础.md"):
+        if name.endswith(".md"):
             replace(os.path.join(root, name))
             if name.find(fixed_date) == -1:
                 os.rename(os.path.join(root, name), os.path.join(root, fixed_date + name))
