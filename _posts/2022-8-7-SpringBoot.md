@@ -136,6 +136,34 @@ springboot是依赖于spring的，比起spring，除了拥有spring的全部功�
 3. AOP ：面向切面编程：将程序重复的代码抽取出来，在需要执行的时候，使用动态代理的技术，在不修改源码的基础上，对自己的已有方法进行增强。
 
 ### Spring 是如何解决循环依赖的？
+[参考](https://segmentfault.com/a/1190000023647227)
+[参考2](https://blog.csdn.net/jy02268879/article/details/106842821)
+Spring 在实例化对象之后，就会为其创建一个 Bean 工厂，并将此工厂加入到三级缓存中。因此，Spring 一开始提前暴露的并不是实例化的 Bean，而是将 Bean 包装起来的ObjectFactory。
+Spring 的做法就是：在 ObjectFactory 中去提前创建代理对象。它会执行 getObject() 方法来获取到 Bean。
+
+```java
+// DefaultSingletonBeanRegistry#getSingleton
+if (earlySingletonExposure) {
+        //添加到第3级缓存
+        addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
+    }
+```
+如果需要代理，这里会返回代理对象；否则，返回原始对象。
+
+创建bean
+AbstractAutowireCapableBeanFactory.java#doCreateBean
+
+Spring就是在对象外面包一层ObjectFactory，**提前曝光的是ObjectFactory对象**，在被注入时才在ObjectFactory.getObject方式内实时生成代理对象，并将生成好的代理对象放入到第二级缓存Map<String, Object> earlySingletonObjects。
+
+创建bean的流程[参考](https://blog.nowcoder.net/n/c82cc953a96848e39705e74af3ffd36a)
+- 先创建BeanA,先实例化BeanA并包装为BeanFactory并放入三级缓存中.
+- 给BeanA进行属性填充时检查依赖,发现BeanB未加载过,则先去加载BeanB
+- BeanB创建过程首先也要包装成BeanFactory放到三级缓存,填充属性时则是从三级缓存获取Bean将BeanA填充进去
+- BeanB填充BeanA从三级缓存中的BeanAFacotry获取BeanA
+- 获取主要通过ObjectFactory.getObject方法,该方法调用getEarlyBeanReference方法,他会创建Bean/Bean的代理并删除BeanA的三级缓存,加入二级缓存
+- BeanB初始化完毕加入一级缓存,BeanA继续执行初始化,初始化完毕比较BeanA二级缓存和一级缓存是否一致,一致则加入一级缓存删除二级缓存
+
+***
 [参考](https://juejin.cn/post/6985337310472568839#heading-2)
 - singletonObjects：一级缓存，用于存放完整的 bean，从该缓存中取出的 bean 可以直接使用；
 - earlySingletonObjects：二级缓存，存放提前暴露的 bean，bean 是不完整的，未完成属性注入和执行 init 方法，用于解决循环依赖；
@@ -180,7 +208,7 @@ B在拿到A的早期实例后就会进行缓存升级，将A从从三级缓存�
 - @ComponentScan：如果不指定包名，则只会扫描@Configuration所在的包下的Bean。如果指定报名，则扫描指定包名下的所有Bean。（具体请看接下来实例中AppConfig的注释）
 - @Autowired：自动注入。根据属性的类型找到对应的Bean进行注入。如果对应类型的Bean不是唯一的会根据属性名称和Bean的名称进行匹配。设置@Autowired的属性required为false时如果找不到匹配的Bean，允许设置为null而不抛出异常
 
-### Spring的自动注入方式🐨
+### Spring的依赖自动注入方式🐨
 [Spring的自动注入方式](https://blog.csdn.net/weixin_40584152/article/details/106466990)
 
 自动注入模式和前面提到的**依赖注入方式**【setter和构造方法】是两回事，简单说：依赖注入是一个过程，主要通过setter和构造方法以及一些变体的方式完成把对象依赖、或者填充上的这个过程叫做**依赖注入，不管手动装配还是自动装配都有这个过程。**
@@ -192,7 +220,7 @@ B在拿到A的早期实例后就会进行缓存升级，将A从从三级缓存�
 后面出现了@Autowire注解来进行注入
 
 **自动注入的四种方式：**
-1. no：就是不要自动装配，@Autowired属于这一类
+1. no：就是不要自动装配，@Autowired属于这一类【org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#populateBean】[参考](https://blog.51cto.com/u_12393361/5021497)
 2. byName：从配置文件中查找跟被注入属性名称相同的bean
 3. byType：按照被注入属性的类型从配置文件中查找跟被注入属性相同的类型
 4. constructor：按照构造函数参数的方法去查找
@@ -225,6 +253,19 @@ public class DefaultAutowireService {
 }
 ```
 
+### Bean的依赖注入
+- 解析beanDefination并注册
+- 实例化bean
+- populateBean设置属性，通过Java的反射机制根据set 方法把属性注入到bean里。
+
+如果是使用非xml方式来配置Spring，那么就无法设置这个自动装配的模式，这样就**默认是no模式**，于是Spring提供了注解的方式协助自动装配，在no模式下只要加上例如@Autowired、@Resource注解也可以完成装配。
+
+[参考](https://blog.csdn.net/zxd1435513775/article/details/121632872)
+- 自动装配【by_name，by_type】在AbstractAutowireCapableBeanFactory#populateBean里
+- Autowired在AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues -> metadata.inject(bean, beanName, pvs);
+- 构造器注入在AbstractAutowireCapableBeanFactory#autowireConstructor
+
+
 ### 怎么管理Bean
 - 基于XML配置
 - 基于注解配置
@@ -246,19 +287,31 @@ public class DefaultAutowireService {
 ***
 首先实例化Bean，并设置Bean的属性，根据其实现的Aware接口（主要是BeanFactoryAware接口，BeanFactoryAware，ApplicationContextAware）设置依赖信息， 接下来调用BeanPostProcess的postProcessBeforeInitialization方法，完成initial前的自定义逻辑；afterPropertiesSet方法做一些属性被设定后的自定义的事情;调用Bean自身定义的init方法，去做一些初始化相关的工作;然后再调用postProcessAfterInitialization去做一些bean初始化之后的自定义工作。这四个方法的调用有点类似AOP。 此时，Bean初始化完成，可以使用这个Bean了。 销毁过程：如果实现了DisposableBean的destroy方法，则调用它，如果实现了自定义的销毁方法，则调用之。
 
-### Applicationcontext与Beanfactory的区别🐋
+### Applicationcontext与Beanfactory的区别🐋🌟
 [参考](https://blog.csdn.net/qq_31459039/article/details/104647097)
 在 Spring 中，最基础的容器接口方法是由 BeanFactory 定义的，而 BeanFactory 的实现类采用的是**延迟加载**，也就是说，容器启动时，只会进行第一个阶段的操作， 当需要某个类的实例时，才会进行第二个阶段的操作。而 ApplicationContext（另一个容器的实现类）**在启动容器时就完成了所有初始化**，这就需要更多的系统资源，我们需要根据不同的场景选择不同的容器实现类。
 
 ***
 ApplicationContext：
-- 提供文本信息解析，支持I18N
-- 提供载入文件资源的通用方法
-- 向注册为监听器的Bean发送事
+- 提供**文本信息解析**，支持I18N
+- 提供**载入文件资源**的通用方法
+- 向注册为**监听器**的Bean发送事件
 - ApplicationContext接口扩展BeanFactory接口
 - ApplicationContext提供附加功能
 
-### IOC的原理
+***
+原始的BeanFactory无法支持spring的许多插件，如AOP功能、Web应用等。ApplicationContext接口,它由BeanFactory接口派生而来， ApplicationContext包含BeanFactory的所有功能，通常建议比BeanFactory优先 。
+
+ApplicationContext以一种更向面向框架的方式工作以及对上下文进行分层和实现继承，ApplicationContext包还提供了以下的功能： 
+- MessageSource, 提供国际化的消息访问 
+- 资源访问，如URL和文件 
+- 事件传播 
+- 载入多个（有继承关系）上下文 ，使得每一个上下文都专注于一个特定的层次，比如应用的web层; 
+
+### Spring中BeanFactory和FactoryBean的区别
+一般情况下，Spring通过反射机制利用\<bean\>的class属性指定实现类实例化Bean，在某些情况下，实例化Bean过程比较复杂，如果按照传统的方式，则需要在\<bean\>中提供大量的配置信息。配置方式的灵活性是受限的，这时采用编码的方式可能会得到一个简单的方案。Spring为此提供了一个org.springframework.bean.factory.FactoryBean的工厂类接口，用户可以通过实现该接口定制实例化Bean的逻辑。
+
+### IOC的原理🐨🐋🌟🌟
 Spring IOC的启动时会读取应用程序提供的Bean的配置信息，并在Spring容器中生成一份相应的Bean配置注册表，然后根据注册表加载、实例化bean、建立bean与bean之间的依赖关系。然后将这些准备就绪的bean放到bean缓存池中，等待应用程序调用。
 
 总结一下，我们可以把IOC的启动流程分为一下两个重要的阶段：
@@ -270,16 +323,16 @@ Spring IOC的启动时会读取应用程序提供的Bean的配置信息，并在
 ### IOC源码
 [参考](https://www.itzhai.com/articles/spring-ioc-theory-analyse.html)
 
-IOC容器的**初始化过程**，主要就体现在AbstractApplicationContext的**refresh()**方法中。
+IOC容器的**初始化过程**，主要就体现在AbstractApplicationContext的**refresh()** 方法中。
 - prepareRefresh(); 设置启动日期，记录容器标识位，初始化容器变量。
 - obtainFreshBeanFactory(); 这一步是Bean定义信息载入的环节。这一步的主要的方法是：loadBeanDefinitions()。
 	- 最开始会创建一个DefaultListableBeanFactory，保存在ApplicationContext的beanFactory中。
-	- loadBeanDefinitions方法中创建了一个**XmlBeanDefinitionReader来读取xml的配置并解析为bean definitions。**
+	- loadBeanDefinitions()方法中创建了一个**XmlBeanDefinitionReader来读取xml的配置并解析为bean definitions。**
 	- 其中loadBeanDefinitions最终会调用到DefaultListableBeanFactory.registerBeanDefinition()方法**注册bean definitions。**
 	- **所谓的注册，就是把解析到的BeanDefinition放入到DefaultListableBeanFactory中定义的一个beanDefinitionMap中。**
 - prepareBeanFactory(); 在使用ApplicationContext时需要做一些准备工作，这些准备工作是在这一步处理的，包括：为容器配置ClassLoader、PropertyEditor和BeanPostProcessor等，从而为容器的启动做好必要的准备。
 - postProcessBeanFactory(); 该方法是在所有的beanDenifition加载完成之后，bean实例化之前执行。为了能够修改bean definitions，或者对BeanFactory做一些其他配置，可以使用这个方法。
-- invokeBeanFactoryPostProcessors(); 调用BEANFACTORY的后置处理器。拿到当前应用上下文 beanFactoryPostProcessors 变量中的值，实例化并调用所有已注册的 BeanFactoryPostProcessor。
+- invokeBeanFactoryPostProcessors(); 调用BeanFactory的后置处理器。拿到当前应用上下文 beanFactoryPostProcessors 变量中的值，实例化并调用所有已注册的 BeanFactoryPostProcessor。
 - registerBeanPostProcessors(); 注册BEAN的后置处理器，这些处理器在 BEAN创建的过程中被调用。
 - initMessageSource(); 初始化消息源，支持消息的参数化和国际化。
 - initApplicationEventMulticaster(); 初始化应用事件广播器，这里使用了事件驱动机制。如果自定义了广播器，就用自对应的，否则用默认的。然后把该广播器设置到context的applicationEventMulticaster属性中。
@@ -289,7 +342,7 @@ IOC容器的**初始化过程**，主要就体现在AbstractApplicationContext�
 - finishRefresh(); 完成容器刷新，调用LifecycleProcessor的onRefresh方法，发布ContextRefreshedEvent事件。
 
 **IoC容器的依赖注入**
-在没有配置lazy-init=false的情况下，依赖注入的过程是用户第一次向IoC容器索要Bean的时候出发的。`BeanFactory.getBean(String name)`
+在没有配置lazy-init=false的情况下，依赖注入的过程是用户第一次向IoC容器索要Bean的时候触发的。`BeanFactory.getBean(String name)`
 
 最终是由createBean方法执行。createBean方法生成需要的bean，并且对Bean初始化进行了处理(init-method或者Bean后置处理器等)。
 
@@ -305,7 +358,7 @@ createBean->doCreateBean->createBeanInstance->instantiateBean->getInstantiationS
 
 **doCreateBean中调用了populateBean方法，该方法进行了依赖注入处理**，主要通过bean definition中的属性值填充BeanWrapper中的bean实例。其中最后一个方法调用applyPropertyValues是属性注入的处理方法。
 
-
+[参考，各种bean的扩展点](https://www.cnblogs.com/xrq730/p/5721366.html)
 针对我们的Bean的实例化，具体一点的话可以分为以下阶段：
 - Spring对bean进行实例化，默认bean是单例；
 - Spring对bean进行依赖注入，比如有没有配置当前depends-on的依赖，有的话就去实例依赖的bean；
@@ -330,7 +383,7 @@ Spring IoC 的底层实现是基于反射技术。
 
 ![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/IOC原理.png)
 
-### IOC原理🐨🐋🌟🌟
+### IOC原理
 [参考](https://yexindong.blog.csdn.net/article/details/117173285?spm=1001.2014.3001.5502)
 SpringApplication.run(DemoApplication.class, args);
 AbstractApplicationContext.class的refresh()方法
@@ -384,6 +437,8 @@ Bean实例化中会调用的方法
 7. 使用ContextLoader提供的getCurrentWebApplicationContext方法
 
 ### bean的生命周期🐨
+![](image/bean生命周期1.png)
+![](image/bean的生命周期2.png)
 [参考](https://www.jianshu.com/p/1dec08d290c1)
 - 实例化 Instantiation ： createBeanInstance() 
 - 属性赋值 Populate ： populateBean()
@@ -622,7 +677,7 @@ AspectJ可以做Spring AOP干不了的事情，它是AOP编程的完全解决方
 
 ### [@Transactional注解的失效场景](https://juejin.cn/post/6844904096747503629)
 
-### Spring中有哪些设计模式？🐋
+### Spring中有哪些设计模式？🐋🌟
 [Spring 中经典的 9 种设计模式，打死也要记住啊！](https://zhuanlan.zhihu.com/p/114244039)
 [面试官:“谈谈Spring中都用到了那些设计模式?”](https://juejin.cn/post/6844903849849962509#heading-16)
 
@@ -632,7 +687,7 @@ AspectJ可以做Spring AOP干不了的事情，它是AOP编程的完全解决方
 - 装饰器模式：Spring中用到的包装器模式在类名上有两种表现：一种是类名中含有Wrapper，另一种是类名中含有Decorator。
 - 代理模式：AOP底层，就是动态代理模式的实现。
 - 观察者模式：监听器
-- 策略模式：针对不同的底层资源，Spring 将会提供不同的 Resource 实现类，不同的实现类负责不同的资源访问逻辑。
+- 策略模式：针对不同的底层资源，Spring 将会提供不同的 Resource 实现类，不同的实现类负责不同的资源访问逻辑。【线程池的拒绝策略】
 - 模版方法模式：Spring 中 jdbcTemplate、hibernateTemplate 等以 Template 结尾的对数据库操作的类，它们就使用到了模板模式。
 
 ### SpringBoot的自动装配原理🐨🌟
@@ -844,8 +899,8 @@ public static String validate( Object object ) throws IllegalAccessException {
 
 1. springboot的应用程序从run方法开始，进入run方法后，会 new 一个SpringApplication 对象，创建这个对象的构造函数做了一些准备工作。
 2. 在SpringApplication的构造方法内，首先会通过 WebApplicationType.deduceFromClasspath()方法判断当前应用程序的容器，默认使用的是Servlet 容器，除了servlet之外，还有NONE  和 REACTIVE （响应式编程）；
-3. 然后从 META-INF/spring.factories 配置文件中加载springboot自带的初始化器，开头是  org.springframework.context.ApplicationContextInitializer ；
-4. 加载监听器也是从 META-INF/spring.factories 配置文件中加载的，与初始化不同的是，监听器加载的是实现了 ApplicationListener 接口的类；
+3. 然后从 META-INF/spring.factories 配置文件中加载springboot自带的**初始化器**，开头是  org.springframework.context.ApplicationContextInitializer ；
+4. **加载监听器**也是从 META-INF/spring.factories 配置文件中加载的，与初始化不同的是，监听器加载的是实现了 ApplicationListener 接口的类；
 5. 用deduceMainApplicationClass()方法仅仅是找到main方法所在的类；
 6. 然后进入run方法的主体，进来后首先会开启计时器，计算springboot启动花了多长时间；
 7. 然后将java.awt.headless设置为true，表示即使没有检测到显示器,也允许其启动；
@@ -915,12 +970,20 @@ SpringBoot应用程序的关闭目前总结起来有4种方式：
 [参考](https://spring-source-code-learning.gitbook.teaho.net/boot/spring-boot-app-close.html)
 使用SpringApplication的exit方法，总的来说就是，获取ExitCodeGenerator的Bean并用ExitCodeGenerators管理。
 
+### Autowired和Resource的区别🌟
+- @Resource是JDK原生的注解，@Autowired是Spring2.5 引入的注解
+- @Resource有两个属性name和type。Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。所以如果使用name属性，则使用byName的自动注入策略，而使用type属性时则使用byType自动注入策略。如果既不指定name也不指定type属性，这时将通过反射机制使用byName自动注入策略。
+- @Autowired只根据type进行注入，不会去匹配name。如果涉及到type无法辨别注入对象时，那需要依赖@Qualifier或@Primary注解一起来修饰。
+
 ### @Autowried和 @Resource的区别
 @Autowired默认按byType装配Bean，如果发现多个类型相同的Bean，再根据byName装配Bean，如果找到了则装配成功，找不到则装配失败。
 
 @Resource默认按byName装配Bean，如果byName没有找到对应的Bean，再根据byType装配Bean，如果找到了则装配成功，找不到则装配失败。
 
 当 @Resource 没有提供 name 和 type 属性的时候，如果 byName 没有找到对应的 Bean 时，则会根据依赖属性的类型去 Spring 容器中查找是否有提供了其他类型相同的 Bean，如果有则自动注入，如果没有则报错。
+***
+- @Autowired默认是根据byType来实现自动装配，如果byType找到多个，再会根据byName去找，而不是直接报错。
+- @Resource首先会通过byName的方式进行注入，如果失败了则进行byType的方式进行注入
 
 ### 微服务怎么划分？
 [参考](https://xie.infoq.cn/article/8b8cbe87fae37bc7b5f151812)
@@ -1003,14 +1066,74 @@ Cascade代表是否执行级联操作，Inverse代表是否由己方维护关系
 
 缺点：有状态的bean在并发环境下线程不安全；
 
-### Autowired和Resource的区别
-- @Resource是JDK原生的注解，@Autowired是Spring2.5 引入的注解
-- @Resource有两个属性name和type。Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。所以如果使用name属性，则使用byName的自动注入策略，而使用type属性时则使用byType自动注入策略。如果既不指定name也不指定type属性，这时将通过反射机制使用byName自动注入策略。
-- @Autowired只根据type进行注入，不会去匹配name。如果涉及到type无法辨别注入对象时，那需要依赖@Qualifier或@Primary注解一起来修饰。
-
 ### Spring中bean的作用域有哪些？
 - Singleton （缺省作用域、单例类型）：容器中只存在一个共享的Bean
 - Prototype （原型类型）：容器启动时并没有实例化Bean，只有获取Bean时才会被创建，并且每一次都是新建一个对象。
 - request（web的Spring ApplicationContext下）：每个HTTP 都会有自己的Bean，当处理结束时，Bean销毁。
 - session（web的Spring ApplicationContext下）：每一个Http session有自己的Bean，Session结束后就销毁bean。
 - global session（web的Spring ApplicationContext下）
+
+### Bean扩展点
+[写的很好](https://blog.csdn.net/qq_38826019/article/details/117389466)
+- BeanDefinitionRegistryPostProcessor：运行在普通的BeanFactoryPostProcessor检测之前注册更多的BeanPostProcessor
+- BeanFactoryPostProcessor：在BeanFactory生成之后，通过该接口自定义修改应用程序上下文的BeanDefinition，调整上下文的BeanFactory的bean属性值。
+- BeanPostProcessor#postProcessBeforeInitialization
+- BeanPostProcessor#postProcessAfterInitialization
+
+Spring将在初始化bean前后对BeanPostProcessor实现类进行回调，与InitializingBean和DisposableBean接口不同的是BeanPostProcessor接口将**对所有的bean**都起作用，即所有的bean初始化前后都会回调BeanPostProcessor实现类，而InitializingBean和DisposableBean接口是针对单个bean的，即只有在对应的bean实现了InitializingBean或DisposableBean接口才会对其进行回调。
+
+因触发时机不同导致二者处理的对象不同。BeanFactoryPostProcessor处理的是解析完配置文件后注册在容器中的BeanDefinition，而BeanPostProcessor处理的是通过反射生成的实例Bean；
+
+Spring容器能够自动检测任何实现了BeanPostProcessor接口的Bean。容器会自动将这些bean注册成后置处理器以便后续调用。另外我们可以定义多个BeanPostProcessor，他们执行的顺序可以通过实现PriorityOrdered、Ordered接口来控制。
+
+我们定义一个类实现了BeanPostProcessor，默认会对整个Spring容器中所有的bean进行处理。
+
+```java
+// AOP的实现
+return Proxy.newProxyInstance(bean.getClass().getClassLoader(), bean.getClass().getInterfaces(), new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                System.out.println("BeanPostProcessor织入，Spring AOP实现原理");
+                return method.invoke(bean, args);
+            }
+        });
+```
+
+- BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry方法在Bean被定义但还没被创建的时候执行.
+- BeanFactoryPostProcessor的postProcessBeanFactory方法在Bean被创建但还没被初始化的时候执行
+
+![](image/自定义和销毁方法.png)
+![](image/aware接口.png)
+
+FactoryBean是Spring容器实例化bean的扩展点。可以通过实现该接口定制实例化bean的逻辑。
+
+我们定义一个事件, 在实现了ApplicationContextAware的Bean中触发事件, 在实现了ApplicationListener的类中对事件做出反应。
+
+### JVM怎么运行SpringBoot jar文件的
+[参考](https://segmentfault.com/a/1190000039852668)
+jar中需要一个META-INF/**MAINFEST.MF**文件，且文件中标明Main-Class。
+java -jar xxx-executable.jar时，程序会进入org.springframework.boot.loader.**JarLauncher执行main方法**。
+
+- LoadMainClass - 加载main class
+- 获取LauncherHelper的实例
+- 验证和加载main方法：类似反射的方法来获取main方法
+- 调用LauncherHelper.main方法
+
+### 过滤器和拦截器
+[参考，写的很好](https://juejin.cn/post/6989529144535023629)
+**过滤器**依赖于servlet容器，实现基于函数回调，可以对几乎所有请求进行过滤
+- Filter随web应用的启动而启动，只初始化一次，随web应用的停止而销毁
+- 启动服务器时加载过滤器的实例，并调用init()方法来初始化实例
+- 每一次请求时都只调用方法doFilter()进行处理
+- 停止服务器时调用destroy()方法，销毁实例
+- 创建一个类，实现Filter接口，配置Filter
+
+**拦截器**依赖于web框架，在SpringMVC中就是依赖于SpringMVC框架。在实现上基于Java的反射机制，属于面向切面编程（AOP）的一种运用。
+- 创建一个类，实现HandlerInterceptor接口
+- 由于拦截器是基于web框架的调用，拦截器可以调用IOC容器中的各种依赖，而过滤器不能，因此可以使用Spring的依赖注入进行一些业务操作。
+- 一个拦截器实例在一个controller生命周期之内可以多次调用。但是缺点是只能对controller请求进行拦截，对其他的一些比如直接访问**静态资源**的请求则没办法进行拦截处理。
+
+
+![](image/拦截器1.png)
+
+![](image/拦截器.png)
