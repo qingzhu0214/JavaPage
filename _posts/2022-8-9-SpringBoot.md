@@ -1075,8 +1075,8 @@ Cascade代表是否执行级联操作，Inverse代表是否由己方维护关系
 
 ### Bean扩展点
 [写的很好](https://blog.csdn.net/qq_38826019/article/details/117389466)
-- BeanDefinitionRegistryPostProcessor：运行在普通的BeanFactoryPostProcessor检测之前注册更多的BeanPostProcessor
-- BeanFactoryPostProcessor：在BeanFactory生成之后，通过该接口自定义修改应用程序上下文的BeanDefinition，调整上下文的BeanFactory的bean属性值。
+- BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry：运行在普通的BeanFactoryPostProcessor检测之前注册更多的BeanPostProcessor。
+- BeanFactoryPostProcessor#postProcessBeanFactory：在BeanFactory生成之后，通过该接口自定义修改应用程序上下文的BeanDefinition，调整上下文的BeanFactory的bean属性值。
 - BeanPostProcessor#postProcessBeforeInitialization
 - BeanPostProcessor#postProcessAfterInitialization
 
@@ -1137,3 +1137,18 @@ java -jar xxx-executable.jar时，程序会进入org.springframework.boot.loader
 ![](image/拦截器1.png)
 
 ![](image/拦截器.png)
+
+### 循环依赖
+[参考](https://segmentfault.com/a/1190000039134606)
+Spring IoC 容器会在运行时检测到构造函数注入循环引用，并抛出BeanCurrentlyInCreationException。所以要避免构造函数注入，可以使用 setter 注入替代。根据官方文档说明，Spring 会自动解决基于 setter 注入的循环依赖。
+
+创建A的时候用一个singletonFactory把A包装起来放到三级缓存，然后B就可以注入A，这个时候调用A的getObject()方法，如果需要代理的话就返回代理后的对象。确保注入到B中的对象和A最终的对象是相同的。然后会把A的代理对象梵高二级缓存。当A开始继续创建的时候发现代理对象缓存里有A了，就不会再生成一次代理对象。
+
+### Spring @Transactional 注解是如何执行事务的？
+
+TransactionInterceptor#invoke 被事务拦截器拦截
+TransactionAspectSupport#invokeWithinTransaction 事务处理
+开启事务 set aotocommit = 0
+回调目标方法，执行原有逻辑
+方法执行成功就提交事务，失败则回滚事务
+最后清理 set aotocommit = 1 
