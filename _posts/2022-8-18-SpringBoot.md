@@ -71,7 +71,7 @@ IOC和AOP
 - SpringBoot使用了默认大于配置的理念，集成了快速开发的Spring多个插件，同时自动过滤不需要配置的多余的插件，简化了项目的开发配置流程，一定程度上取消xml配置，是一套快速配置开发的脚手架，能快速开发单个微服务；
 - SpringCloud大部分的功能插件都是基于SpringBoot去实现的，SpringCloud关注于全局的微服务整合和管理，将多个SpringBoot单体微服务进行整合以及管理；SpringCloud依赖于SpringBoot开发，而SpringBoot可以独立开发；
 
-### Spring boot 相对 Spring有什么优势
+### SpringBoot 相对 Spring有什么优势
 [Spring boot 相对 Spring有什么优势](http://www.itcast.cn/news/20200918/15180354560.shtml)
 1. 可快速构建独立的Spring应用
 2. 直接嵌入Tomcat、Jetty和Undertow服务器(无需部署WAR文件)
@@ -216,7 +216,7 @@ B在拿到A的早期实例后就会进行缓存升级，将A从从三级缓存�
 而自动装配模式是一种完成自动装配依赖的手段体现，每一种模型都使用了不同的技术去查找和填充bean。
 
 手动注入：
-过在XML中追加`<property>`属性来为类加上其所需要的类。
+通过在XML中追加`<property>`属性来为类加上其所需要的类。
 后面出现了@Autowire注解来进行注入
 
 **自动注入的四种方式：**
@@ -253,18 +253,18 @@ public class DefaultAutowireService {
 }
 ```
 
-### Bean的依赖注入
+### Bean的依赖注入🌟
 - 解析beanDefination并注册
 - 实例化bean
 - populateBean设置属性，通过Java的反射机制根据set 方法把属性注入到bean里。
 
 如果是使用非xml方式来配置Spring，那么就无法设置这个自动装配的模式，这样就**默认是no模式**，于是Spring提供了注解的方式协助自动装配，在no模式下只要加上例如@Autowired、@Resource注解也可以完成装配。
 
+### Autowired原理🧊
 [参考](https://blog.csdn.net/zxd1435513775/article/details/121632872)
 - 自动装配【by_name，by_type】在AbstractAutowireCapableBeanFactory#populateBean里
-- Autowired在AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues -> metadata.inject(bean, beanName, pvs);
+- Autowired在AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues -> metadata.inject(bean, beanName, pvs);【InstantiationAwareBeanPostProcessor是实例化后置】
 - 构造器注入在AbstractAutowireCapableBeanFactory#autowireConstructor
-
 
 ### 怎么管理Bean
 - 基于XML配置
@@ -438,6 +438,9 @@ Bean实例化中会调用的方法
 
 ### bean的生命周期🐨
 ![](image/bean生命周期1.png)
+
+调用时机：BeanFactoryPostProcessor在**BeanFactory标准初始化之后**调用，这时所有的bean定义已经保存加载到beanFactory，但是bean的实例还未创建
+
 ![](image/bean的生命周期2.png)
 [参考](https://www.jianshu.com/p/1dec08d290c1)
 - 实例化 Instantiation ： createBeanInstance() 
@@ -451,7 +454,6 @@ Bean实例化中会调用的方法
 BeanNameAware
 BeanClassLoaderAware
 BeanFactoryAware
-
 
 ***
 [参考](https://yexindong.blog.csdn.net/article/details/117173285?spm=1001.2014.3001.5502)
@@ -517,10 +519,19 @@ Bean的获取阶段：
 byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);
 ```
 
+```java
+//代理的真实对象
+Subject realSubject = new RealSubject();
+InvocationHandler handler = new InvocationHandlerImpl(realSubject);
+ClassLoader loader = realSubject.getClass().getClassLoader();
+Class[] interfaces = realSubject.getClass().getInterfaces();
+Subject subject = (Subject) Proxy.newProxyInstance(loader, interfaces, handler);
+```
+
 JDK生成的最终真正的代理类，它继承自Proxy并实现了我们定义的Subject接口，
 在实现Subject接口方法的内部，通过反射调用了InvocationHandlerImpl的invoke方法。
 
-### AOP底层通过什么机制来实现的？🐨🐋🌟🌟🌟
+### AOP底层通过什么机制来实现的？🐨🐋🧊🌟🌟🌟
 [AOP底层通过什么机制来实现的](https://www.cnblogs.com/swordfall/p/12880809.html)
 [参考链接](https://blog.csdn.net/yaomingyang/article/details/80981004)
 [参考](https://www.cnblogs.com/tuyang1129/p/12878549.html)
@@ -653,8 +664,9 @@ SpringBoot2.7.0版本：
 
 ### Java AOP和AspectJ的区别
 [参考](https://cloud.tencent.com/developer/article/1366257)
-Spring AOP也是对目标类增强，生成代理类。但是与AspectJ的最大区别在于---Spring AOP的运行时增强，而AspectJ是编译时增强。
-Spring AOP使用了AspectJ的Annotation。使用了Aspect来定义切面,使用Pointcut来定义切入点，使用Advice来定义增强处理。虽然使用了Aspect的Annotation，但是并没有使用它的编译器和织入器。其实现原理是JDK 动态代理，在运行时生成代理类。
+Spring AOP也是对目标类增强，生成代理类。但是与AspectJ的最大区别在于Spring AOP的**运行时**增强，而AspectJ是**编译时**增强。
+
+Spring AOP使用了AspectJ的Annotation。使用了Aspect来定义切面,使用Pointcut来定义切入点，使用Advice来定义增强处理。虽然使用了Aspect的Annotation，但是**并没有使用它的编译器和织入器。其实现原理是JDK 动态代理，在运行时生成代理类。**
 
 [参考](https://segmentfault.com/a/1190000022019122)
 **Spring AOP**
@@ -687,7 +699,7 @@ AspectJ可以做Spring AOP干不了的事情，它是AOP编程的完全解决方
 - 装饰器模式：Spring中用到的包装器模式在类名上有两种表现：一种是类名中含有Wrapper，另一种是类名中含有Decorator。
 - 代理模式：AOP底层，就是动态代理模式的实现。
 - 观察者模式：监听器
-- 策略模式：针对不同的底层资源，Spring 将会提供不同的 Resource 实现类，不同的实现类负责不同的资源访问逻辑。【线程池的拒绝策略】
+- 策略模式：针对不同的**底层资源**，Spring 将会提供不同的 Resource 实现类，不同的实现类负责不同的资源访问逻辑。【线程池的**拒绝策略**】
 - 模版方法模式：Spring 中 jdbcTemplate、hibernateTemplate 等以 Template 结尾的对数据库操作的类，它们就使用到了模板模式。
 
 ### SpringBoot的自动装配原理🐨🌟
@@ -699,20 +711,20 @@ AspectJ可以做Spring AOP干不了的事情，它是AOP编程的完全解决方
 -> loadSpringFactories
 -> classLoader.getResources(FACTORIES_RESOURCE_LOCATION);
 -> FACTORIES_RESOURCE_LOCATION = **"META-INF/spring.factories"**; 【加载key为EnableAutoConfiguration的类】
--> 调用filter.match过滤掉一些类
+-> 调用**filter.match过滤掉一些类**
 
 [参考](https://segmentfault.com/a/1190000030685746)
 **Bean自动配置**
 Spring Boot的启动类上有一个@SpringBootApplication注解，它上面定义了另外一个注解：@EnableAutoConfiguration。
 
-该注解的关键功能由@Import提供，其导入的AutoConfigurationImportSelector的selectImports()方法通过SpringFactoriesLoader.loadFactoryNames()扫描所有具有META-INF/spring.factories的jar包下面key是EnableAutoConfiguration全名的所有自动配置类。然后将所有自动配置类加载到Spring容器中。
+该注解的关键功能由@Import提供，其导入的AutoConfigurationImportSelector的selectImports()方法通过SpringFactoriesLoader.loadFactoryNames()扫描所有具有META-INF/spring.factories的jar包下面key是**EnableAutoConfiguration**全名的所有自动配置类。然后将所有自动配置类加载到Spring容器中。
 
 **属性自动配置**
 属性的自动配置是通过ConfigurationPropertiesBindingPostProcessor类的postProcessBeforeInitialization方法完成，它会解析@ConfigurationProperties注解上的属性，将配置文件中对应key的值绑定到属性上。
 
 ***
 自动装配可以简单理解为：通过注解或者一些简单的配置就能在 Spring Boot 的帮助下实现某块功能。
-Spring Boot 通过 **@EnableAutoConfiguration** 开启自动装配，通过 SpringFactoriesLoader 最终加载META-INF/spring.factories中的自动配置类实现自动装配，自动配置类其实就是通过@Conditional按需加载的配置类，想要其生效必须引入spring-boot-starter-xxx包实现起步依赖。
+Spring Boot 通过 **@EnableAutoConfiguration** 开启自动装配，通过 SpringFactoriesLoader 最终加载META-INF/spring.factories中的自动配置类实现自动装配，自动配置类其实就是通过**@Conditional按需加载的配置类**，想要其生效必须引入spring-boot-starter-xxx包实现起步依赖。
 每导入一个第三方的依赖，除了本身的jar包以外，还会有一个 xxx-spring-boot-autoConfigure，这个就是第三方依赖自己编写的自动配置类。
 
 ### Spring 自动装配原理
@@ -733,8 +745,7 @@ EnableAutoConfiguration会帮助springboot应用把所有符合@Configuration配
 
 ### @Autowired注解原理分析
 [spring BeanPostProcessor 生命周期](https://www.jianshu.com/p/642b21489555)
-```
-1. postProcessBeforeInstantiation被调用
+1. postProcessBeforeInstantiation【实例化】被调用
 2. 构造方法被调用，name：小小
 3. postProcessAfterInstantiation被调用
 4. postProcessProperties被调用
@@ -748,7 +759,6 @@ EnableAutoConfiguration会帮助springboot应用把所有符合@Configuration配
 12. bean创建完成 name： 大大
 13. DisposableBean被调用
 14. destroy-method自定义销毁方法被调用
-```
 
 [@Autowired实现原理](https://www.jianshu.com/p/1002f5a704ea)
 
@@ -778,7 +788,7 @@ public Class Outer {
 }
 ```
 
-目前绝大部分的代码都使用第2、第3种。第1种在bean实例化时完成，而第2、第3种的实现原理都是一样的，在属性填充时完成。
+目前绝大部分的代码都使用第2、第3种。第1种**在bean实例化**时完成，而第2、第3种的实现原理都是一样的，在**属性填充**时完成。
 
 1. 通过反射查找bean的class下所有注解了@Autowired的字段和方法
 2. 获取到字段，通过getBean(字段)获取到对应bean，然后再通过反射调用field的set将bean注入
@@ -904,7 +914,7 @@ public static String validate( Object object ) throws IllegalAccessException {
 5. 用deduceMainApplicationClass()方法仅仅是找到main方法所在的类；
 6. 然后进入run方法的主体，进来后首先会开启计时器，计算springboot启动花了多长时间；
 7. 然后将java.awt.headless设置为true，表示即使没有检测到显示器,也允许其启动；
-8. 获取并启用监听器；
+8. 获取并**启用监听器**；
 9. 将执行run方法时传入的参数封装成一个对象；
 10. 准备环境变量，包含系统属性和用户配置的属性；
 11. 通过configureIgnoreBeanInfo() 方法跳过beanInfo的搜索；
@@ -912,7 +922,7 @@ public static String validate( Object object ) throws IllegalAccessException {
 13. 调用 createApplicationContext() 方法创建应用程序的上下文；
 14. 实例化异常报告器；
 15. 准备上下文环境 ：实例化单例的beanName生成器；执行初始化方法；将启动参数注册到容器中；
-16. 刷新上下文，自动装配和启动 tomcat就是在这个方法里面完成；
+16. 刷新上下文，**自动装配**和启动 tomcat就是在这个方法里面完成；
 17. 刷新上下文后置处理；
 18. 到这一步，springboot其实就已经完成了，计时器会打印启动springboot的时长；
 19. 发布上下文准备就绪事件；
@@ -970,7 +980,7 @@ SpringBoot应用程序的关闭目前总结起来有4种方式：
 [参考](https://spring-source-code-learning.gitbook.teaho.net/boot/spring-boot-app-close.html)
 使用SpringApplication的exit方法，总的来说就是，获取ExitCodeGenerator的Bean并用ExitCodeGenerators管理。
 
-### Autowired和Resource的区别🌟
+### Autowired和Resource的区别🌟🌟
 - @Resource是JDK原生的注解，@Autowired是Spring2.5 引入的注解
 - @Resource有两个属性name和type。Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。所以如果使用name属性，则使用byName的自动注入策略，而使用type属性时则使用byType自动注入策略。如果既不指定name也不指定type属性，这时将通过反射机制使用byName自动注入策略。
 - @Autowired只根据type进行注入，不会去匹配name。如果涉及到type无法辨别注入对象时，那需要依赖@Qualifier或@Primary注解一起来修饰。
@@ -1007,14 +1017,6 @@ SpringBoot应用程序的关闭目前总结起来有4种方式：
 - Propagation.NESTED：如果当前事务存在，则在嵌套事务中执行，否则开启一个事务。
 	- REQUIRED情况下，调用方存在事务时，则被调用方和调用方使用同一事务，那么被调用方出现异常时，由于共用一个事务，所以无论调用方是否catch其异常，事务都会回滚。而在NESTED情况下，被调用方发生异常时，调用方可以catch其异常，这样只有子事务回滚，父事务不受影响。
 
-### Spring事务怎么实现的
-[参考](https://zhuanlan.zhihu.com/p/54067384)
-Spring采用AOP来实现声明式事务。代理对象生成的核心类是AbstractAutoProxyCreator，实现了BeanPostProcessor接口，会在Bean初始化完成之后，通过postProcessAfterInitialization方法生成代理对象。
-
-DefaultAopProxyFactory#createAopProxy()
-
-事务拦截器TransactionInterceptor在invoke方法中，通过调用父类TransactionAspectSupport的invokeWithinTransaction方法进行事务处理，该方法支持声明式事务和编程式事务。
-
 ### JDBC连接数据库基本流程
 [参考](https://blog.csdn.net/qq_45528306/article/details/110291969)
 1. 加载驱动
@@ -1042,13 +1044,6 @@ DefaultAopProxyFactory#createAopProxy()
 父模块打包方式改成`<packaging>pom</packaging>`
 在父工程右键创建子模块
 
-### 过滤器和监听器的区别
-[参考](https://segmentfault.com/a/1190000021823564)
-[参考二](https://zhuanlan.zhihu.com/p/69060111)
-- Filter过滤器是Servlet容器层面的，在实现上基于函数回调，可以对几乎所有请求进行过滤。
-- Listener监听器也是Servlet层面的，可以用于监听Web应用中某些对象、信息的创建、销毁和修改等动作发生，然后做出相应的响应处理。
-- Interceptor拦截器和Filter和Listener有本质上的不同，前面二者都是依赖于Servlet容器，而Interceptor则是依赖于Spring框架，是aop的一种表现，基于Java的动态代理实现的。
-
 ### Spring如何保证线程安全的？🐋
 使用 threadLocal 进行处理，ThreadLocal 是线程本地变量，每个线程拥有变量的一个独立副本，所以各个线程之间互不影响，保证了线程安全。
 
@@ -1061,7 +1056,7 @@ Cascade代表是否执行级联操作，Inverse代表是否由己方维护关系
 
 ### 为什么默认是单例？
 - 减少了新生成实例的消耗
-- 减少jvm垃圾回收
+- 减少JVM垃圾回收
 - 可以快速获取到bean,因为单例的获取bean操作除了第一次生成之外其余的都是从缓存里获取的所以很快。
 
 缺点：有状态的bean在并发环境下线程不安全；
@@ -1076,7 +1071,7 @@ Cascade代表是否执行级联操作，Inverse代表是否由己方维护关系
 ### Bean扩展点
 [写的很好](https://blog.csdn.net/qq_38826019/article/details/117389466)
 - BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry：运行在普通的BeanFactoryPostProcessor检测之前注册更多的BeanPostProcessor。
-- BeanFactoryPostProcessor#postProcessBeanFactory：在BeanFactory生成之后，通过该接口自定义修改应用程序上下文的BeanDefinition，调整上下文的BeanFactory的bean属性值。
+- BeanFactoryPostProcessor#postProcessBeanFactory：在**BeanFactory生成之后**，通过该接口自定义修改应用程序上下文的BeanDefinition，调整上下文的BeanFactory的bean属性值。
 - BeanPostProcessor#postProcessBeforeInitialization
 - BeanPostProcessor#postProcessAfterInitialization
 
@@ -1110,6 +1105,7 @@ FactoryBean是Spring容器实例化bean的扩展点。可以通过实现该接�
 我们定义一个事件, 在实现了ApplicationContextAware的Bean中触发事件, 在实现了ApplicationListener的类中对事件做出反应。
 
 ### JVM怎么运行SpringBoot jar文件的
+[参考](https://my.oschina.net/funcy/blog/3142868)
 [参考](https://segmentfault.com/a/1190000039852668)
 jar中需要一个META-INF/**MAINFEST.MF**文件，且文件中标明Main-Class。
 java -jar xxx-executable.jar时，程序会进入org.springframework.boot.loader.**JarLauncher执行main方法**。
@@ -1118,6 +1114,13 @@ java -jar xxx-executable.jar时，程序会进入org.springframework.boot.loader
 - 获取LauncherHelper的实例
 - 验证和加载main方法：类似反射的方法来获取main方法
 - 调用LauncherHelper.main方法
+
+### 过滤器和监听器的区别
+[参考](https://segmentfault.com/a/1190000021823564)
+[参考二](https://zhuanlan.zhihu.com/p/69060111)
+- Filter过滤器是Servlet容器层面的，在实现上基于**函数回调**，可以对几乎所有请求进行过滤。
+- Listener监听器也是Servlet层面的，可以用于监听Web应用中某些对象、信息的创建、销毁和修改等动作发生，然后做出相应的响应处理。
+- Interceptor拦截器和Filter和Listener有本质上的不同，前面二者都是依赖于Servlet容器，而Interceptor则是依赖于Spring框架，是aop的一种表现，基于Java的**动态代理**实现的。
 
 ### 过滤器和拦截器
 [参考，写的很好](https://juejin.cn/post/6989529144535023629)
@@ -1142,7 +1145,15 @@ java -jar xxx-executable.jar时，程序会进入org.springframework.boot.loader
 [参考](https://segmentfault.com/a/1190000039134606)
 Spring IoC 容器会在运行时检测到构造函数注入循环引用，并抛出BeanCurrentlyInCreationException。所以要避免构造函数注入，可以使用 setter 注入替代。根据官方文档说明，Spring 会自动解决基于 setter 注入的循环依赖。
 
-创建A的时候用一个singletonFactory把A包装起来放到三级缓存，然后B就可以注入A，这个时候调用A的getObject()方法，如果需要代理的话就返回代理后的对象。确保注入到B中的对象和A最终的对象是相同的。然后会把A的代理对象梵高二级缓存。当A开始继续创建的时候发现代理对象缓存里有A了，就不会再生成一次代理对象。
+创建A的时候用一个singletonFactory把A包装起来放到三级缓存，然后B就可以注入A，这个时候调用A的getObject()方法，如果需要代理的话就返回代理后的对象。确保注入到B中的对象和A最终的对象是相同的。然后会把A的代理对象放到二级缓存。当A开始继续创建的时候发现**代理对象缓存**里有A了，就不会再生成一次代理对象。
+
+### Spring事务怎么实现的
+[参考](https://zhuanlan.zhihu.com/p/54067384)
+Spring采用AOP来实现声明式事务。代理对象生成的核心类是AbstractAutoProxyCreator，实现了BeanPostProcessor接口，会在Bean初始化完成之后，通过postProcessAfterInitialization方法生成代理对象。
+
+DefaultAopProxyFactory#createAopProxy()
+
+事务拦截器TransactionInterceptor在invoke方法中，通过调用父类TransactionAspectSupport的invokeWithinTransaction方法进行事务处理，该方法支持声明式事务和编程式事务。
 
 ### Spring @Transactional 注解是如何执行事务的？
 
@@ -1152,3 +1163,46 @@ TransactionAspectSupport#invokeWithinTransaction 事务处理
 回调目标方法，执行原有逻辑
 方法执行成功就提交事务，失败则回滚事务
 最后清理 set aotocommit = 1 
+
+### Spring内部的BeanPostProcessor接口总结
+[参考](https://fangjian0423.github.io/2017/06/20/spring-bean-post-processor/)
+
+### SpringBoot启动流程
+[参考](https://cloud.tencent.com/developer/article/1972444)
+
+刷新上下文
+SpringApplication.java#run() -> refreshContext(context); -> 
+applicationContext.refresh();->
+AbstractApplicationContext.java#refresh()->
+**obtainFreshBeanFactory();**->
+AbstractRefreshableApplicationContext.java#refreshBeanFactory()->
+DefaultListableBeanFactory beanFactory = createBeanFactory();->
+loadBeanDefinitions(beanFactory);->
+![](image/loadbean.png)
+
+注册bean
+![](image/注册bean.png)
+![](image/创建bean1.png)
+![](image/填充bean.png)
+![](image/autowired.png)
+
+### springboot内置tomcat如何嵌入的
+SpringBoot的启动主要是通过实例化SpringApplication来启动的，启动过程主要做了以下几件事情：配置属性、获取监听器，发布应用开始启动事件、始化输入参数、配置环境，输出banner、创建上下文、预处理上下文、刷新上下文、再刷新上下文、发布应用已经启动事件、发布应用启动完成事件。
+
+在SpringBoot中启动tomcat的工作在刷新上下这一步。而tomcat的启动主要是实例化两个组件：Connector、Container，一个tomcat实例就是一个Server，一个Server包含多个Service，也就是多个应用程序，每个Service包含多个Connector和一个Container，而一个Container下又包含多个子容器。
+
+### IOC是什么
+[参考](https://www.zhihu.com/question/23277575)
+如果在上层方法里new一个下层的对象，如果下层的构造函数修改了，就需要修改整个上层所有类的构造函数。在软件工程中，这样的设计几乎是不可维护的。
+
+用**依赖注入**（Dependency Injection）这种方式来实现**控制反转**。所谓依赖注入，就是把底层类作为**参数**传入上层类，实现上层类对下层类的“控制”。
+
+用IOC容器可以直接隐藏具体的创建实例的细节。
+
+IoC主要的实现方式有两种：依赖查找，依赖注入。
+
+IOC的优点就显而易见了，它降低组件之间的耦合度，实现软件各层之间的解耦，同时在保障不改变源码的情况下实现外部对象动态的注入到组件中，这样就能减少后期维护成本。
+
+[参考](https://www.zhihu.com/question/23277575/answer/247023315)
+
+将被依赖对象的创建与维护工作交由专门的机构，而依赖类中只需要声明所需要的成员变量。这样做的目的就是为了降低两个类之间的耦合程度。
