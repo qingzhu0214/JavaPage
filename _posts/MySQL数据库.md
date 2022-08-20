@@ -85,7 +85,7 @@ B+ 树也是多路平衡查找树，其与 B 树的区别主要在于：
 
 B+树比B树的优势：更少的 IO 次数、更适于范围查询、更稳定的查询效率
 
-### InnoDB 和 MyISAM 的区别？🐋🐋🌟🌟
+### InnoDB 和 MyISAM 的区别？🐋🐋🧊🌟🌟
 1. InnoDB 支持事务，MyISAM 不支持事务。这是 MySQL 将默认存储引擎从 MyISAM 变成 InnoDB 的重要原因之一；
 2. InnoDB 支持外键，而 MyISAM 不支持。对一个包含外键的 InnoDB 表转为 MYISAM 会失败；
 3. InnoDB 是聚集索引，MyISAM 是非聚集索引。聚簇索引的文件存放在主键索引的叶子节点上，因此 InnoDB 必须要有主键，通过主键索引效率很高。但是辅助索引需要两次查询，先查询到主键，然后再通过主键查询到数据。而 MyISAM 是非聚集索引，数据文件是分离的，**索引保存的是数据文件的指针**。主键索引和辅助索引是独立的。
@@ -101,7 +101,7 @@ InnoDB将数据划分为若干页，以页作为磁盘与内存交互的基本�
 
 [参考](https://pdai.tech/md/arch/arch-z-id.html#defaultuidgenerator-%E5%AE%9E%E7%8E%B0)
 UUID、snowflake和美团leaf算法
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/snowflake.png)
+![](./image/snowflake.png)
 
 Leaf-segment：利用proxy server批量获取，每次获取一个segment(step决定大小)号段的值。用完之后再去数据库获取新的号段，可以大大的减轻数据库的压力。
 双buffer优化：采用双buffer的方式，Leaf服务内部有两个号段缓存区segment。当前号段已下发10%时，如果下一个号段未更新，则另启一个更新线程去更新下一个号段。当前号段全部下发完后，如果下个号段准备好了则切换到下个号段为当前segment接着下发，循环往复。
@@ -220,7 +220,7 @@ write pos和checkpoint之间的是 redo log上还空着的部分，可以用来�
 
 幻读：幻读是针对数据插入（INSERT）操作来说的。假设事务A对某些行的内容作了更改，但是还未提交，此时事务B插入了与事务A更改前的记录相同的记录行，并且在事务A提交之前先提交了，而这时，在事务A中查询，会发现好像刚刚的更改对于某些数据未起作用，但其实是事务B刚插入进来的。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/gljb.png)
+![](./image/gljb.png)
 
 ### 幻读
 [参考](https://opensource.actionsky.com/20210818-mysql/)
@@ -304,7 +304,7 @@ SERIALIZABLE 隔离级别，是通过锁来实现的，参考上面基于锁定�
 ### MVCC(Multi-Version Concurrency Control)🐨🐋🌟
 在同一时刻，不同的事务读取到的数据可能是不同的(即多版本)——在T5时刻，事务A和事务C可以读取到不同版本的数据。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/MVCC.png)
+![](./image/MVCC.png)
 
 MVCC最大的优点是**读不加锁，因此读写不冲突**，并发性能好。InnoDB实现MVCC，多个版本的数据可以共存，主要基于以下技术及数据结构：
 1. 隐藏列：InnoDB中每行数据都有隐藏列，隐藏列中包含了本行数据的事务id、指向undo log的指针等。
@@ -344,7 +344,7 @@ select ... for update; # 排他锁读取
 
 实际上insert undo只在事务回滚时起作用，当事务提交后，该类型的undo日志就没用了，它占用的Undo Log Segment也会被系统回收。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/kzyz.png)
+![](./image/kzyz.png)
 
 InnDB 为每个事务构造了一个数组，用来保存这个事务启动瞬间，当前正**活跃（还未提交）的事务**。事务 ID 随时间严格递增的，**把系统中已提交的事务 ID 的最大值记为数组的低水位，已创建过的事务 ID + 1记为高水位**。
 
@@ -390,7 +390,7 @@ MySQL为了减少锁处理（包括等待其它锁）的时间，提升并发能
 
 行锁防止别的事务修改或删除，GAP锁防止别的事务新增，行锁和GAP锁结合形成的的Next-Key锁共同解决了RR级别在**写数据**时的幻读问题。【有索引的情况下，给记录两边的GAP加锁。如果 不是索引列，那么数据库会为整个表加上间隙锁。】
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/gap.png)
+![](./image/gap.png)
 
 在Serializable这个级别，select还是会加锁的！
 
@@ -973,7 +973,7 @@ Having是一个过滤声明，是在查询**返回结果集以后**对查询结�
 ### binlog和redo log的一致性问题
 [参考](https://jishuin.proginn.com/p/763bfbd70f06)
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/redolog一致性.png)
+![](./image/redolog一致性.png)
 
 据两阶段提交，崩溃恢复时的判断规则是这样的：
 - 如果 redo log 里面的事务是完整的，也就是已经有了 commit 标识，则直接提交
@@ -1027,7 +1027,7 @@ undo日志: 
 
 ### Innodb 页目录
 B+树索引是InnoDB数据页的主要组成部分。各个数据页可以组成一个双向链表，而每个数据页中的记录会按照主键值从小到大的顺序组成一个单向链表，每个数据页都会为存储在它里边儿的记录生成一个页目录。再通过主键查找某条记录的时候可以在页目录中使用二分法快速定位到对应的槽。
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/页目录.png)
+![](./image/页目录.png)
 
 ### MySQL里面的乐观锁和悲观锁熟悉吗？
 [参考](https://segmentfault.com/a/1190000022839728)
@@ -1172,7 +1172,7 @@ MAX、MIN、COUNT、SUM、AVERAGE
 
 在只读时是可以避免幻读的，在读写时可能会因为update操作使得不可见的行变得可见, 从而出现幻影行。
 
-### MySql为何默认不用hash索引
+### MySql为何默认不用hash索引🧊
 [参考](https://blog.csdn.net/hw20070575/article/details/51248321)
 - Hash 索引仅仅能满足"=","IN"和"<=>"查询，不能使用范围查询。
 - Hash 索引无法被用来避免数据的排序操作。
@@ -1396,3 +1396,29 @@ select * from performance_schema.data_locks;
 select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G;
 ```
 ![](image/mysql执行.png)
+
+### select count( * )  count(id) count(1)的区别
+[参考](https://www.modb.pro/db/61041)
+COUNT（expr）返回selsct检索语句中expr的值不为null的行数，其结果是一个BIGINT类型的值；如果没有匹配的行也就是所有行都是null或者表中没有数据，则返回0；但是需要注意的是如果使用的是count(* )则返回结果会包含null的记录，也就是说，即使这一行全为null也会统计的结果中。
+
+由于count(* )不关心具体的列，所以在扫描的过程中我们如果可以选择一个较低成本的索引的话就可以节省扫描的时间。在InnoDB中索引分为聚簇索引（主键索引）和非聚簇索引（非主键索引），聚簇索引的叶子节点中保存的是整行记录，而非聚簇索引的叶子节点中保存的是该行记录的主键的值。这种情况下是**非聚簇索引要比聚簇索引小得多**，所以在具体执行的过程如果有非聚簇索引的活mysql会自动选择在非聚簇索引的列上做统计，这样就能提高查询的速度。
+
+InnoDB引擎来说count(* )和count(1)的底层操作是一致，在优化上是一致的，没有差异。所以结论就是二者的执行速度是一眼的，不存在孰优孰劣的差异。对于MyISAM引擎来说，只有第一列的值全部不为null的时候，count(1)才和count(* )拥有相同的执行优化。
+
+不论是count(主键)还是count(其他列)都是需要扫描全表取出每一条记录的，但是count(其他列)的时候还需要判断取出的值是否为null，不为null的时候才进行统计，而对于count(主键)来说，主键是不会为null的，所以会少了一步判断，性能上会更优一些。
+
+count(* )与count(1)以及count(主键)的结果完全相同，即返回表中的所有行数，包含null值；count(其他列)会排除掉该列值为null的记录，返回的值小于或者等于总行数。
+
+### 普通索引和联合索引区别
+- 多个单列索引在多条件查询时只会生效第一个索引！所以多条件联合查询时最好建联合索引！
+- 如果where条件中是OR关系，联合索引不起作用.
+
+[参考](https://juejin.cn/post/6968382567586201637)
+or 只有两边都有索引才走索引，如果都没有或者只有一个是不走索引的.
+
+### MySQL事务的提交过程
+[参考](https://segmentfault.com/a/1190000040767696)
+两阶段提交：
+- 事务提交时 InnoDB 存储引擎进行 prepare 操作
+- MySQL 数据库上层写入 binlog，写入磁盘
+- InnoDB 存储引擎层把刚刚写入的 redo log 改成提交（commit）状态

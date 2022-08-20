@@ -347,7 +347,7 @@ int newCapacity = oldCapacity + (oldCapacity >> 1);
 ### 线程安全的集合🌟
 使用java.util.concurrent包提供的线程安全的并发集合可以大大简化多线程编程：
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/xcaq.png)
+![](./image/xcaq.png)
 
 ### LinkedBlockingQueue和ArrayBlockingQueue的区别
 - ArrayBlockingQueue是有界的，而LinkedBlockingQueue默认是无界的
@@ -477,7 +477,7 @@ TreeSet底层是TreeMap来实现的。底层基于红黑树实现。
 
 ### 讲讲 ConcurrentHashMap ？
 HashMap是线程不安全的，目前主要用的ConcurrentHashMap来保证线程安全性。
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/ConcurrentHashMap.png)
+![](./image/ConcurrentHashMap.png)
 
 一个 Segment里包含一个 HashEntry 数组，每个 HashEntry 是一个链表结构的元素， 每个 Segment守护着一个 HashEntry 数组里的元素，当对 HashEntry数组的数据进行修改时，必须首先获得它对应的 Segment 锁。
 
@@ -527,7 +527,7 @@ HashMap是线程不安全的，目前主要用的ConcurrentHashMap来保证线�
 - Mark Word：主要用于存储自身运行时数据
 - Class Pointer：是指针，指向方法区中该 class 的对象，JVM 通过此字段来判断当前对象是哪个类的实例
 - 数组长度：当且仅当对象是数组时才会有该字段
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/suo.png)
+![](./image/suo.png)
 
 ### Java的对象头mark word
 [参考](https://juejin.cn/post/6978882583492821023)
@@ -891,7 +891,7 @@ Java编程语言允许线程访问共享变量，为了确保共享变量能被�
 **volatile的第二个特性--保证有序性**【禁止重排序】
 为了实现volatile的内存语义，编译器在生成字节码时，会在指令序列中插入内存屏障来禁止特定类型的处理器重排序。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/内存屏障.jpg)
+![](./image/内存屏障.jpg)
 
 volatile的底层是通过：store，load等内存屏障命令，解决JMM的可见性和重排序问题的。但是它无法解决竞争问题，要解决竞争问题需要加锁，或使用cas等无锁技术。
 
@@ -940,7 +940,7 @@ Java 采用方式是复制 finally 代码块的内容，分别放在 try catch �
 
 在try语句的return块中，return 返回的变量并不是直接返回 i 值，而是在执行finally块之前把i值**存储在临时区域**，当执行return时直接返回的临时区域中的值，即使在finally语句中把变量 i 的值修改了，也不会影响返回的值。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/finally.png)
+![](./image/finally.png)
 
 ### finally块中return语句发生异常
 只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，**如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。**
@@ -953,7 +953,7 @@ Java 采用方式是复制 finally 代码块的内容，分别放在 try catch �
 
 面向对象（Object Oriented）：看名字它是注重对象的。当解决一个问题的时候，面向对象会把事物抽象成对象的概念，就是说这个问题里面有哪些对象，然后给对象赋一些属性和方法，然后让每个对象去执行自己的方法，问题得到解决。
 
-### 接口和抽象类的区别🐋🐋🌟🌟
+### 接口和抽象类的区别🐋🐋🧊🌟🌟
 （1）接口只有定义，不能有方法的实现，java 1.8中可以定义default方法体，而抽象类可以有定义与实现，方法可在抽象类中实现。【抽象方法不能有实现，但是抽象类里面可以有其他的非抽象方法，并且有方法体】
 （2）实现接口的关键字为implements，继承抽象类的关键字为extends。一个类可以实现多个接口，但一个类只能继承一个抽象类。所以，使用接口可以间接地实现多重继承。
 （3）接口强调特定功能的实现，而抽象类强调所属关系。
@@ -1467,7 +1467,7 @@ new**Cached**ThreadPool()、new**Scheduled**ThreadPool() 的底层代码中的**
 ### 一个任务放入线程池的过程🌟
 [一个任务放入线程池的过程](https://www.cnblogs.com/chiangchou/p/thread-pool.html)
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/xczx.png)
+![](./image/xczx.png)
 
 - 提交任务后，如果线程数小于 corePoolSize，则创建新线程执行任务，无论当前线程池的线程是否空闲都会创建新的线程。
 - 当创建的线程数等于 corePoolSize 时，提交的任务会被加入到设置的阻塞队列中。
@@ -1481,7 +1481,7 @@ new**Cached**ThreadPool()、new**Scheduled**ThreadPool() 的底层代码中的**
 -   TIDYING：所有任务都终止，并且**工作线程也为0**，处于关闭之前的状态
 -   TERMINATED：已关闭。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/线程池生命周期.png)
+![](./image/线程池生命周期.png)
 
 [参考资料](https://juejin.cn/post/6844904000056197127)
 
@@ -1521,7 +1521,7 @@ OOM的原因：
 
 ctl 是一个涵盖了两个概念的原子整数类，它将工作线程数和线程池状态结合在一起维护，低 29 位存放 workerCount，高 3 位存放 runState。
 
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/线程池实现.png)
+![](./image/线程池实现.png)
 
 ### 如何监控 Java 线程池运行状态
 ```java
@@ -1605,7 +1605,7 @@ shutdownNow首先将线程池的状态设置成 STOP，然后尝试停止所有�
 
 ### 阻塞队列的选型和长度
 [参考](https://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/Java%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%2078%20%E8%AE%B2-%E5%AE%8C/38%20%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E9%80%82%E5%90%88%E8%87%AA%E5%B7%B1%E7%9A%84%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%EF%BC%9F.md)
-![](https://github.com/qingzhu0214/JavaPage/raw/wuzu/_posts/myimg/阻塞队列.png)
+![](./image/阻塞队列.png)
 
 - 由于 FixedThreadPool 的**线程数是固定的**，在任务激增的时候，它无法增加更多的线程来帮忙处理 Task，所以需要像 LinkedBlockingQueue 这样没有容量上限的 Queue 来存储那些还没处理的 Task。
 - 对于 CachedThreadPool 而言，为了避免新提交的任务被拒绝，它选择了**无限制的 maximumPoolSize**（在专栏中，maxPoolSize 等同于 maximumPoolSize），所以既然它的**线程的最大数量是无限的**，也就意味着它的**线程数不会受到限制**，那么它就**不需要一个额外的空间来存储那些 Task**，因为每个任务都可以通过新建线程来处理。
@@ -2577,7 +2577,7 @@ run：
 浮点型的数据为什么会精度丢失, 或者说精度不精确呢? 其实是由于我们代码在程序里写的十进制小数，而计算机内部只能用二进制的小数, 所以无法精确的表达。
 ![](image/浮点数.png)
 
-### 接口与抽象类有什么共同点和区别？🧊
+### 接口与抽象类有什么共同点和区别？🧊🧊
 共同点：
 - 都不能被实例化
 - 都可以包含抽象方法
@@ -2663,3 +2663,43 @@ G1 跟踪各个 Region 里面的垃圾堆积的价值大小（回收所获得的
 当一个bin中的链表长度达到8个元素的时候，概率为0.00000006，几乎是一个不可能事件。
 
 超过0.8，查表时的CPU缓存不命中（cache missing）按照指数曲线上升。
+
+### Arrays.sort()原理
+[参考](https://cloud.tencent.com/developer/article/1690708)
+首选判断数组排序的长度是否小于插入排序的阈值，这个值是47，小于这个值的时候，插入排序的效率要高于快排 。
+
+双轴快排
+然后选出5个点，分别是e1,e2,e3,e4,e5,将数组等分为6份。然后针对这个5个元素，进行插入排序 。
+
+选取a[e2]，a[e4]分别作为pivot1，pivot2。 
+
+如果数组长度大于286的时候，先对数组进行一个初步判断，看看是否适合使用归并排序。如果数组每个区块都近似有序，并且递增变递减的次数没有超MAX_RUN_COUNT次数，那就使用归并排序进行排序 ，反之，就使用快速排序。
+
+![](image/Arraysort.png)
+
+### FutureTask是怎么接收结果的
+[参考](https://www.cnblogs.com/yougewe/p/11666284.html)
+
+### JUC下有哪些类
+[参考](https://juejin.cn/post/7095673352307605511)
+- 锁，如ReentratLock，ReadWriteLock。
+- 原子类 基本类，数组类，引用类等。AtomicInteger比较常用。
+- 线程同步，使得线程间的同步更加容易。如CountDownLatch计数器，CyclicBarrier可重置计数器，semaphore【ˈseməfɔː(r)】计数器信号量。
+- 并发集合类，提供ConcurrentHashMap，ConcurrentLinkedQueue，CopyOnWriteArrayList等，方便并发场景下的集合类操作。
+- Fork/Join框架 对于Fork/Join框架,Java提供了两个子类进行计算。
+- 线程池相关
+- 阻塞队列
+
+### ArrayList＜Integer＞ 将一个字符串放入这个集合里
+```java
+class Solution {
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ArrayList<Integer> list = new ArrayList<>();
+        Class<? extends ArrayList> clazz = list.getClass();
+        Method add = clazz.getMethod("add", Object.class);
+        add.invoke(list, "hello");
+        add.invoke(list, 1);
+        System.out.println(list);
+    }
+}
+```
