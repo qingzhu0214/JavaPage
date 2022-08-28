@@ -23,6 +23,7 @@ ThreadLocal
 Lock
 AQS
 ThreadPoolExecutor
+jdbctemplate
 
 ## Spring boot 相对 Spring有什么优势
 
@@ -145,6 +146,7 @@ springboot是依赖于spring的，比起spring，除了拥有spring的全部功�
 ### Spring 是如何解决循环依赖的？🧊
 [参考](https://segmentfault.com/a/1190000023647227)
 [参考2](https://blog.csdn.net/jy02268879/article/details/106842821)
+[写的挺好](https://juejin.cn/post/6986554802842894367)
 Spring 在实例化对象之后，就会为其创建一个 Bean 工厂，并将此工厂加入到三级缓存中。因此，Spring 一开始提前暴露的并不是实例化的 Bean，而是将 Bean 包装起来的ObjectFactory。
 Spring 的做法就是：在 ObjectFactory 中去提前创建代理对象。它会执行 getObject() 方法来获取到 Bean。
 
@@ -270,7 +272,7 @@ public class DefaultAutowireService {
 ### Autowired原理🧊
 [参考](https://blog.csdn.net/zxd1435513775/article/details/121632872)
 - 自动装配【by_name，by_type】在AbstractAutowireCapableBeanFactory#populateBean里
-- Autowired在AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues -> metadata.inject(bean, beanName, pvs);【InstantiationAwareBeanPostProcessor是实例化后置】
+- Autowired在AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues -> metadata.inject(bean, beanName, pvs);【InstantiationAwareBeanPostProcessor是**实例化后置**】
 - 构造器注入在AbstractAutowireCapableBeanFactory#autowireConstructor
 
 ### 怎么管理Bean
@@ -359,7 +361,7 @@ AbstractAutowireCapableBeanFactory.java的createBean方法。
 
 createBean->doCreateBean->createBeanInstance->instantiateBean->getInstantiationStrategy().instantiate    【/ɪnstænʃɪ'eɪʃən/ 实例化】
 ![](image/bean初始化调用关系.png)
-在SimpleInstantiationStrategy.java的instantiate方法中如果是接口的实现，那么就会使用CGLIB来实例化Bean，否则使用BeanUtils中的JVM反射来实例化Bean。生成的实例最终会被封装为BeanWrapper。
+在SimpleInstantiationStrategy.java的instantiate方法中如果是接口的实现，【没有方法被重写】那么就会使用CGLIB来实例化Bean，否则使用BeanUtils中的JVM反射来实例化Bean。生成的实例最终会被封装为BeanWrapper。
 
 - **BEAN的初始化**
 
@@ -994,7 +996,7 @@ SpringBoot应用程序的关闭目前总结起来有4种方式：
 
 ### Bean名称
 [参考](https://segmentfault.com/a/1190000040232071)
-通过扫描bean注解注入IOC时，如果不指定bean名称的默认规则是类名的首字母小写，如果类名前两个或以上个字母都是大写，那么bean名称与类名一样。
+通过扫描bean注解注入IOC时，如果不指定bean名称的默认规则是**类名的首字母小写**，如果**类名前两个或以上个字母都是大写**，那么bean名称与类名一样。
 
 如果name的开头两个及两个以上字符为大写，则不作处理并直接返回原来的名字，否则将名称的首字母小写后返回。
 
@@ -1262,14 +1264,14 @@ CONSTRUCTOR
 ### Spring事务失效的场景
 @Transactional
 事务不生效：
-- 方法的访问权限被定义成了private，这样会导致事务失效，spring要求被代理方法必须是public的。
-- 方法被定义成了final的，这样会导致事务失效。如果某个方法是static的，同样无法通过动态代理，变成事务方法。
-- 在同一个类中的方法直接内部调用，会导致事务失效。
+- 方法的访问权限被定义成了**private**，这样会导致事务失效，spring要求被代理方法必须是public的。
+- 方法被定义成了**final**的，这样会导致事务失效。如果某个方法是static的，同样无法通过动态代理，变成事务方法。
+- 在同一个类中的**方法直接内部调**用，会导致事务失效。
 - 使用spring事务的前提是：对象要被spring管理，需要创建bean实例。
 - 两个方法不在同一个线程中，获取到的数据库连接不一样，从而是两个不同的事务。
 - MyISAM表不支持事务
-- 如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果没有抛异常，则spring认为程序是正常的。
-- 为spring事务，默认情况下只会回滚RuntimeException（运行时异常）和Error（错误），对于普通的Exception（非运行时异常），它不会回滚。
+- 如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果**没有抛异常**，则spring认为程序是正常的。
+- 为spring事务，默认情况下只会回滚RuntimeException（运行时异常）和Error（错误），对于**普通的Exception**（非运行时异常），它不会回滚。
 
 声明式事务
 ```java
@@ -1285,3 +1287,16 @@ CONSTRUCTOR
          })
    }
 ```
+
+### @restcontroller @controller @responsebody区别
+- @RestController 在 Spring MVC 中就是 @Controller 和 @ResponseBody 注解的集合
+- @Controller可以直接返回JSP,html页面，如果需要返回实体对象，需要在方法上加上@ResponseBody注解，才可以返回实体对象
+- @RestController类中的所有方法只能返回String,Object,Json等实体对象，不能跳转到页面
+
+@RestController，一般是使用在类上的，它表示的意思其实就是结合了@Controller和@ResponseBody两个注解，，使用了@RestController注解之后，其本质相当于在该类的所有方法上都统一使用了@ResponseBody注解，所以该类下的所有方法都会返回json数据格式，输出在页面上，而不会再返回视图。
+
+### 应用上下文ApplicationContext
+应用上下文ApplicationContext是spring中较之于BeanFactory更为先进的IOC容器，ApplicationContext除了拥有BeanFactory的所有功能外，还支持特殊类型bean如上一节中的BeanFactoryPostProcessor和BeanPostProcessor的自动识别、资源加载、容器事件和监听器、国际化支持、单例bean自动初始化等。
+
+### FactoryBean
+FactoryBean是一种特殊的bean，当向容器获取该bean时，容器不是返回其本身，而是返回其FactoryBean#getObject方法的返回值，可通过编码方式定义复杂的bean。
