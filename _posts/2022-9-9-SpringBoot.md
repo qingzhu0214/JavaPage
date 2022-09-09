@@ -86,7 +86,7 @@ IOC和AOP
 3. 提供依赖启动器简化构建配置
 4. 极大程度的自动化配置Spring和第三方库
 
-### Spring 和 SpringBoot 之间到底有啥区别？
+### Spring 和 SpringBoot 之间到底有啥区别？🌟
 Spring Boot中的一些特征：
 1）创建独立的Spring应用。
 2）嵌入式Tomcat、Jetty、 Undertow容器（无需部署war文件）。
@@ -1076,7 +1076,7 @@ Cascade代表是否执行级联操作，Inverse代表是否由己方维护关系
 
 缺点：有状态的bean在并发环境下线程不安全；
 
-### Spring中bean的作用域有哪些？
+### Spring中bean的作用域有哪些？🌟
 - Singleton （缺省作用域、单例类型）：容器中只存在一个共享的Bean
 - Prototype （原型类型）：容器启动时并没有实例化Bean，只有获取Bean时才会被创建，并且每一次都是新建一个对象。
 - request（web的Spring ApplicationContext下）：每个HTTP 都会有自己的Bean，当处理结束时，Bean销毁。
@@ -1300,3 +1300,10 @@ CONSTRUCTOR
 
 ### FactoryBean
 FactoryBean是一种特殊的bean，当向容器获取该bean时，容器不是返回其本身，而是返回其FactoryBean#getObject方法的返回值，可通过编码方式定义复杂的bean。
+
+### 事务异常回滚
+[参考](https://blog.csdn.net/qq_39213969/article/details/105532264)
+
+默认情况下，如果在事务中抛出了未检查异常（继承自 RuntimeException 的异常）或者 Error，则 Spring 将回滚事务；除此之外，Spring 不会回滚事务。
+
+如果在事务中抛出其他类型的异常，并期望 Spring 能够回滚事务，可以指定 rollbackFor。
