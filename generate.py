@@ -62,8 +62,3 @@ for root,dirs,files in os.walk(base):
             else:
                 mdfile.write("- [{}]({})".format(name.split('-')[-1].split('.')[0], convert_path(os.path.join(root, name))))
                 mdfile.write('\n')
-            
-            
-os.system('git add .')
-os.system("git commit -m 'execute_by_script'")
-os.system('git push origin wuzu')
