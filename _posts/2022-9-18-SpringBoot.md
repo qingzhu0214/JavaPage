@@ -75,7 +75,7 @@ IOC和AOP
 ### Spring，SpringMVC，SpringBoot，SpringCloud 有什么区别和联系？
 [参考](https://cloud.tencent.com/developer/article/1666935)
 - Spring是一个一站式的轻量级的java开发框架，核心是控制反转（IOC）和面向切面（AOP），针对于开发的WEB层(springMvc)、业务层(Ioc)、持久层(jdbcTemplate)等都提供了多种配置解决方案；
-- SpringMVC是Spring基础之上的一个MVC框架，涵盖面包括前端视图开发、文件配置、后台接口逻辑开发等，XML、config等配置相对比较繁琐复杂；
+- SpringMVC是Spring基础之上的一个MVC框架，涵盖面包括前端视图开发、文件配置、后台接口逻辑开发等，XML、config等配置相对比较繁琐复杂；【SpringMVC是Spring基础之上的一个MVC框架，主要处理web开发的**路径映射和视图渲染**，属于Spring框架中WEB层开发的一部分；】
 - SpringBoot使用了默认大于配置的理念，集成了快速开发的Spring多个插件，同时自动过滤不需要配置的多余的插件，简化了项目的开发配置流程，一定程度上取消xml配置，是一套快速配置开发的脚手架，能快速开发单个微服务；
 - SpringCloud大部分的功能插件都是基于SpringBoot去实现的，SpringCloud关注于全局的微服务整合和管理，将多个SpringBoot单体微服务进行整合以及管理；SpringCloud依赖于SpringBoot开发，而SpringBoot可以独立开发；
 
@@ -147,6 +147,10 @@ springboot是依赖于spring的，比起spring，除了拥有spring的全部功�
 [参考](https://segmentfault.com/a/1190000023647227)
 [参考2](https://blog.csdn.net/jy02268879/article/details/106842821)
 [写的挺好](https://juejin.cn/post/6986554802842894367)
+
+[带源码的解析](https://blog.csdn.net/weixin_43901882/article/details/120069307)
+![](image/三级缓存1.png)
+
 Spring 在实例化对象之后，就会为其创建一个 Bean 工厂，并将此工厂加入到三级缓存中。因此，Spring 一开始提前暴露的并不是实例化的 Bean，而是将 Bean 包装起来的ObjectFactory。
 Spring 的做法就是：在 ObjectFactory 中去提前创建代理对象。它会执行 getObject() 方法来获取到 Bean。
 
@@ -1307,3 +1311,8 @@ FactoryBean是一种特殊的bean，当向容器获取该bean时，容器不是�
 默认情况下，如果在事务中抛出了未检查异常（继承自 RuntimeException 的异常）或者 Error，则 Spring 将回滚事务；除此之外，Spring 不会回滚事务。
 
 如果在事务中抛出其他类型的异常，并期望 Spring 能够回滚事务，可以指定 rollbackFor。
+
+### @Component和@Bean的区别
+- @Component 注解作用于类，而 @Bean 注解作用于方法
+- @Component 通常是通过路径扫描来自动侦测以及自动装配到 Spring 容器中(我们可以使用 @ComponentScan 注解定义要扫描的路径从中找出标识了需要装配的类自动装配到 Spring 的 bean 容器中)。@Bean 注解通常是我们在标有该注解的方法中定义产生这个 bean，@Bean 告诉了 Spring 这是某个类的实例，当我们需要用它的时候还给我。
+- @Bean 注解比 @Component 注解的自定义性更强，而且很多地方我们只能通过 @Bean 注解来注册 bean。比如当我们引用第三方库中的类需要装配到 Spring 容器时，只能通过 @Bean 来实现。

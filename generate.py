@@ -1,10 +1,14 @@
 import os
 import datetime
+import shutil
+
 
 today=datetime.date.today()
 
 mdfile = open("index.md", 'w', encoding='utf-8')
 
+shutil.rmtree("_posts", ignore_errors=True)
+os.mkdir("_posts")
 base = os.path.join("_posts")
 
 fixed_date = today.strftime('%Y-%#m-%#d-')
@@ -28,6 +32,14 @@ def replace(file_name):
 
 def convert_path(path: str) -> str:
     return path.replace('\\', '/')
+
+# 拷贝文件
+from shutil import copyfile
+file_need_copy_list = ["Java基础.md", "JVM虚拟机.md", "MySQL数据库.md", "Redis.md", "SpringBoot.md", "操作系统.md", "计算机网络.md", "设计模式.md", "消息队列.md"]
+for file_need_copy in file_need_copy_list:
+    copyfile(os.path.join("D:\graduate\JavaStereotypedWriting\Java相关\八股文", file_need_copy), os.path.join("D:\graduate\JavaPage\_posts", file_need_copy))
+    
+shutil.copytree(os.path.join("D:\graduate\JavaStereotypedWriting\Java相关\八股文", "image"), os.path.join("D:\graduate\JavaPage\_posts", "myimg")) 
 
 for root,dirs,files in os.walk(base):
     print(root)
