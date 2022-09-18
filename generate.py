@@ -35,7 +35,7 @@ def convert_path(path: str) -> str:
 
 # 拷贝文件
 from shutil import copyfile
-file_need_copy_list = ["Java基础.md", "JVM虚拟机.md", "MySQL数据库.md", "Redis.md", "SpringBoot.md", "操作系统.md", "计算机网络.md", "设计模式.md", "消息队列.md"]
+file_need_copy_list = ["Java基础.md", "JVM虚拟机.md", "MySQL数据库.md", "Redis.md", "SpringBoot.md", "操作系统.md", "计算机网络.md", "设计模式.md", "消息队列.md", "Linux.md"]
 for file_need_copy in file_need_copy_list:
     copyfile(os.path.join("D:\graduate\JavaStereotypedWriting\Java相关\八股文", file_need_copy), os.path.join("D:\graduate\JavaPage\_posts", file_need_copy))
     
@@ -63,3 +63,7 @@ for root,dirs,files in os.walk(base):
                 mdfile.write("- [{}]({})".format(name.split('-')[-1].split('.')[0], convert_path(os.path.join(root, name))))
                 mdfile.write('\n')
             
+            
+os.system('git add .')
+os.system("git commit -m 'execute_by_script'")
+os.system('git push origin wuzu')
